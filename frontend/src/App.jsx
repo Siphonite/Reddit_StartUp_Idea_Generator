@@ -1,69 +1,72 @@
-import { useState } from 'react';
-import './App.css';
+import { useState } from "react";
+import "./App.css";
+
+// Fix: Component names should start with uppercase
+import Navbar from "./components/Navbar";
+import UrlInput from "./components/UrlInput";
+import ResultCard from "./components/ResultCard";
+import Footer from "./components/Footer";
 
 function App() {
-  const [redditUrl, setRedditUrl] = useState('');
+  const [redditUrl, setRedditUrl] = useState("");
   const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setResult(null);
+  const handleGenerate = async () => {
+    if (!redditUrl.trim()) {
+      setError("Please enter a Reddit post link.");
+      return;
+    }
+
+    setError("");
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/analyze_post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url: redditUrl }),
+      const response = await fetch("http://localhost:8000/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reddit_url: redditUrl }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Backend error: ${response.statusText}`);
-      }
-
       const data = await response.json();
-      setResult(data);
+
+      if (!response.ok) {
+        setError(data.error || "Something went wrong.");
+      } else {
+        setResult(data);
+      }
     } catch (err) {
-      setError(`Failed to generate ideas: ${err.message}`);
+      setError("Server unreachable.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="App">
-      <h1>Reddit Startup Idea Generator</h1>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Reddit Post URL:
-          <input
-            type="text"
-            value={redditUrl}
-            onChange={(e) => setRedditUrl(e.target.value)}
-            placeholder="https://www.reddit.com/r/..."
-            required
-          />
-        </label>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Generating...' : 'Generate Ideas'}
-        </button>
-      </form>
-      {error && <p className="error">{error}</p>}
-      {result && (
-        <div className="result">
-          <h2>Post Details</h2>
-          <p><strong>Title:</strong> {result.title}</p>
-          <p><strong>Body:</strong> {result.body}</p>
-          <h2>Startup Ideas</h2>
-          <p>{result.ideas}</p>
-        </div>
-      )}
-    </div>
+    <>
+      <Navbar />
+
+      <div className="container">
+        <h1 className="title">Turn Any Reddit Post Into a Startup Idea</h1>
+        <p className="subtitle">
+          Paste a Reddit post link and get a fully structured startup idea with
+          problem → solution → business model.
+        </p>
+
+        <UrlInput
+          redditUrl={redditUrl}
+          setRedditUrl={setRedditUrl}
+          loading={loading}
+          handleGenerate={handleGenerate}
+          error={error}
+        />
+
+        {result && <ResultCard result={result} />}
+      </div>
+
+      <Footer />
+    </>
   );
 }
 

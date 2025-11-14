@@ -1,0 +1,46 @@
+.navbar {
+  width: 100%;
+  background: white;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 12px 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  position: sticky;
+  top: 0;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-circle {
+  background: #ff4500;
+  color: white;
+  padding: 7px;
+  border-radius: 50%;
+  font-size: 14px;
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.github-btn {
+  background: #ff4500;
+  color: white;
+  padding: 8px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.github-btn:hover {
+  opacity: 0.8;
+}
