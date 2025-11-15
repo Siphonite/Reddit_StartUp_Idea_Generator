@@ -169,23 +169,30 @@ async fn main() {
     // Build our application with some routes
     let app = Router::new()
         .route("/health", get(health_handler))
-        .route("/analyze_post", post(analyze_post_handler));
+        .route("/analyze_post", post(analyze_post_handler))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(Any)
+                .allow_methods(Any)
+                .allow_headers(Any)
+        );
 
-    // Add CORS layer
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
-    let app = app.layer(cors);
+    // === FIX: Read port from Railway ===
+    let port: u16 = env::var("PORT")
+        .unwrap_or_else(|_| "3000".to_string())
+        .parse()
+        .expect("PORT must be a number");
 
-    // Define the address to bind the server to
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    println!("Listening on http://{}", addr);
+    // === FIX: Bind to 0.0.0.0 instead of 127.0.0.1 ===
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-    // Start server
+    println!("Server running on http://{}", addr);
+
+    // Use the dynamic bind
     let listener = tokio::net::TcpListener::bind(addr)
         .await
-        .expect("Failed to bind port 3000");
+        .expect("Failed to bind to address");
+
     axum::serve(listener, app)
         .await
         .expect("Server failed");

@@ -1,0 +1,5 @@
+[build]
+rust-toolchain = "1.80" # Use the Rust version from your project or latest stable
+
+[deploy]
+startCommand = "./target/release/reddit_ideas" 
