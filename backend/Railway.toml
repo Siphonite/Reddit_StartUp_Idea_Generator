@@ -1,5 +1,8 @@
 [build]
-rust-toolchain = "1.80" # Use the Rust version from your project or latest stable
+builder = "nixpacks"
+
+[experimental]
+source = "backend"
 
 [deploy]
-startCommand = "./target/release/reddit_ideas" 
+startCommand = "/app/target/release/backend"
