@@ -1,8 +1,13 @@
-# Ignore Makefiles and auto-generated build files
+# Ignore all Makefiles everywhere
+*.mk linguist-vendored
 Makefile linguist-vendored
-backend/target/* linguist-vendored
-target/* linguist-vendored
+**/Makefile linguist-vendored
 
-# Explicit language mappings
-backend/* linguist-language=Rust
-frontend/* linguist-language=JavaScript
+# Ignore all auto-generated Rust build files
+**/target/** linguist-vendored
+
+# Force languages for each folder
+backend/** linguist-language=Rust
+frontend/** linguist-language=JavaScript
+frontend/** linguist-language=HTML
+frontend/** linguist-language=CSS
