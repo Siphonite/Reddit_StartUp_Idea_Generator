@@ -23,7 +23,7 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/analyze_post`, {
+      const response = await fetch('https://redditideas-production.up.railway.app/analyze_post', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: redditUrl }),
