@@ -26,11 +26,9 @@
   border-radius: 8px;
 }
 
-/* Brand title */
+/* Hide brand text completely */
 .logo-text {
-  font-size: 20px;
-  font-weight: 600;
-  color: #ff4500;
+  display: none;
 }
 
 /* GitHub button */

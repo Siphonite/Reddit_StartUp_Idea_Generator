@@ -4,10 +4,9 @@ import logo from "../assets/logo.png";
 function Navbar() {
   return (
     <nav className="navbar">
-      {/* Left side: logo + brand text */}
+      {/* Left side: only the logo */}
       <div className="nav-left">
         <img src={logo} alt="Logo" className="site-logo" />
-        <span className="logo-text">Reddit Ideas</span>
       </div>
 
       {/* Right side: GitHub button */}
