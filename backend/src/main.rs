@@ -40,14 +40,18 @@ async fn health_handler() -> Json<HealthResponse> {
 
 async fn analyze_post_handler(
     Json(payload): Json<AnalyzeRequest>,
-) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
-    // 1. Prepare Reddit URL
-    let mut url = payload.url.clone();
-    if !url.ends_with(".json") {
-        url.push_str(".json");
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+
+    // --- 1. Clean Reddit URL ---
+    let mut url = payload.url.split('?').next().unwrap_or("").to_string();
+
+    if url.ends_with('/') {
+        url.pop();
     }
 
-    // 2. Make request to Reddit
+    url.push_str(".json");
+
+    // --- 2. Request Reddit ---
     let client = reqwest::Client::new();
     let response = client
         .get(&url)
@@ -56,30 +60,40 @@ async fn analyze_post_handler(
         .await
         .map_err(|e| {
             eprintln!("Reddit API error: {}", e);
-            axum::http::StatusCode::BAD_GATEWAY
+            (
+                axum::http::StatusCode::BAD_GATEWAY,
+                Json(serde_json::json!({
+                    "error": "Failed to contact Reddit. Check the URL."
+                })),
+            )
         })?;
 
-    // 3. Parse Reddit response JSON
+    // --- 3. Parse JSON ---
     let data: serde_json::Value = response
         .json()
         .await
         .map_err(|e| {
             eprintln!("Reddit JSON parse error: {}", e);
-            axum::http::StatusCode::BAD_REQUEST
+            (
+                axum::http::StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "error": "Reddit returned invalid data."
+                })),
+            )
         })?;
 
-    // 4. Extract post title and body text
-    let post_data = data[0]["data"]["children"][0]["data"].clone();
-    let title = post_data["title"].as_str().unwrap_or("No title").to_string();
-    let body = post_data["selftext"].as_str().unwrap_or("No text").to_string();
+    // --- 4. Extract content safely ---
+    let post = &data[0]["data"]["children"][0]["data"];
+    let title = post["title"].as_str().unwrap_or("No title").to_string();
+    let body = post["selftext"].as_str().unwrap_or("No text").to_string();
 
-    // 5. Build LLM prompt for Gemini
+    // --- 5. Build prompt ---
     let prompt = format!(
         "You are an expert startup mentor. Read this Reddit post and generate 3 potential startup ideas with short explanations.\n\nTitle: {}\n\nBody: {}",
         title, body
     );
 
-    // 6. Call Gemini API for idea generation
+    // --- 6. Call Gemini ---
     let ai_response = match call_gemini_api(&prompt).await {
         Ok(text) => text,
         Err(e) => {
@@ -88,7 +102,7 @@ async fn analyze_post_handler(
         }
     };
 
-    // 7. Combine everything into the response
+    // --- 7. Response ---
     let result = serde_json::json!({
         "title": title,
         "body": body,
@@ -97,6 +111,7 @@ async fn analyze_post_handler(
 
     Ok(Json(result))
 }
+
 
 async fn call_gemini_api(prompt: &str) -> Result<String, anyhow::Error> {
     dotenvy::dotenv().ok();
