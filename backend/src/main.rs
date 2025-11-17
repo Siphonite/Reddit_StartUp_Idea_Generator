@@ -51,22 +51,27 @@ async fn analyze_post_handler(
 
     url.push_str(".json");
 
-    // --- 2. Request Reddit ---
-    let client = reqwest::Client::new();
-    let response = client
-        .get(&url)
-        .header("User-Agent", "reddit-idea-generator/0.1")
-        .send()
-        .await
-        .map_err(|e| {
-            eprintln!("Reddit API error: {}", e);
-            (
-                axum::http::StatusCode::BAD_GATEWAY,
-                Json(serde_json::json!({
-                    "error": "Failed to contact Reddit. Check the URL."
-                })),
-            )
-        })?;
+// --- 2. Request Reddit ---
+let client = reqwest::Client::new();
+let response = client
+    .get(&url)
+    .header(
+        "User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) RedditIdeasBot/1.0 (+https://redditideas.vercel.app)"
+    )
+    .header("Accept", "application/json")
+    .header("Accept-Language", "en-US,en;q=0.9")
+    .send()
+    .await
+    .map_err(|e| {
+        eprintln!("Reddit API error: {}", e);
+        (
+            axum::http::StatusCode::BAD_GATEWAY,
+            Json(serde_json::json!({
+                "error": "Failed to contact Reddit. Check the URL."
+            })),
+        )
+    })?;
 
 // --- Read raw text first (Reddit may return HTML instead of JSON) ---
     let text = response
